@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/mitchellh/mapstructure"
@@ -15,6 +16,7 @@ type Socket struct {
 	OnReceiveMarketDataCallback OnReceiveDataCallback
 	OnErrorCallback             OnErrorCallback
 
+	mx        sync.Mutex
 	conn      *websocket.Conn
 	isClosed  bool
 	sessionID string
@@ -37,6 +39,7 @@ func Connect(
 
 // Init connects to the tradingview web socket
 func (s *Socket) Init() (err error) {
+	s.mx = sync.Mutex{}
 	s.isClosed = true
 	s.conn, _, err = (&websocket.Dialer{}).Dial("wss://data.tradingview.com/socket.io/websocket", getHeaders())
 	if err != nil {
@@ -70,6 +73,8 @@ func (s *Socket) Close() (err error) {
 
 // AddSymbol ...
 func (s *Socket) AddSymbol(symbol string) (err error) {
+	s.mx.Lock()
+	defer s.mx.Unlock()
 	err = s.sendSocketMessage(
 		getSocketMessage("quote_add_symbols", []interface{}{s.sessionID, symbol}),
 	)
@@ -78,6 +83,8 @@ func (s *Socket) AddSymbol(symbol string) (err error) {
 
 // RemoveSymbol ...
 func (s *Socket) RemoveSymbol(symbol string) (err error) {
+	s.mx.Lock()
+	defer s.mx.Unlock()
 	err = s.sendSocketMessage(
 		getSocketMessage("quote_remove_symbols", []interface{}{s.sessionID, symbol}),
 	)
