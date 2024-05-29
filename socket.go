@@ -26,19 +26,20 @@ type Socket struct {
 func Connect(
 	onReceiveMarketDataCallback OnReceiveDataCallback,
 	onErrorCallback OnErrorCallback,
+	token string
 ) (socket SocketInterface, err error) {
 	socket = &Socket{
 		OnReceiveMarketDataCallback: onReceiveMarketDataCallback,
 		OnErrorCallback:             onErrorCallback,
 	}
 
-	err = socket.Init()
+	err = socket.Init(token)
 
 	return
 }
 
 // Init connects to the tradingview web socket
-func (s *Socket) Init() (err error) {
+func (s *Socket) Init(token string) (err error) {
 	s.mx = sync.Mutex{}
 	s.isClosed = true
 	s.conn, _, err = (&websocket.Dialer{}).Dial("wss://data.tradingview.com/socket.io/websocket", getHeaders())
@@ -53,7 +54,7 @@ func (s *Socket) Init() (err error) {
 	}
 	s.generateSessionID()
 
-	err = s.sendConnectionSetupMessages()
+	err = s.sendConnectionSetupMessages(token)
 	if err != nil {
 		s.onError(err, ConnectionSetupMessagesErrorContext)
 		return
@@ -122,9 +123,9 @@ func (s *Socket) generateSessionID() {
 	s.sessionID = "qs_" + GetRandomString(12)
 }
 
-func (s *Socket) sendConnectionSetupMessages() (err error) {
+func (s *Socket) sendConnectionSetupMessages(token string) (err error) {
 	messages := []*SocketMessage{
-		getSocketMessage("set_auth_token", []string{"unauthorized_user_token"}),
+		getSocketMessage("set_auth_token", []string{token}),
 		getSocketMessage("quote_create_session", []string{s.sessionID}),
 		getSocketMessage("quote_set_fields", []string{s.sessionID, "lp", "volume", "bid", "ask"}),
 	}
