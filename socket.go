@@ -26,7 +26,7 @@ type Socket struct {
 func Connect(
 	onReceiveMarketDataCallback OnReceiveDataCallback,
 	onErrorCallback OnErrorCallback,
-	token string
+	token string,
 ) (socket SocketInterface, err error) {
 	socket = &Socket{
 		OnReceiveMarketDataCallback: onReceiveMarketDataCallback,
