@@ -1,4 +1,4 @@
-module github.com/verzth/tradingview-scraper/v2
+module github.com/zodiac163/tradingview-scraper/v2
 
 go 1.16
 
