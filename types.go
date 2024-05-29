@@ -4,7 +4,7 @@ package tradingview
 type SocketInterface interface {
 	AddSymbol(symbol string) error
 	RemoveSymbol(symbol string) error
-	Init() error
+	Init(token string) error
 	Close() error
 }
 
